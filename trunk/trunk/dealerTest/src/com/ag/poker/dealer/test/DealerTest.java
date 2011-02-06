@@ -3,9 +3,9 @@ package com.ag.poker.dealer.test;
 import java.util.HashMap;
 
 import android.app.Instrumentation;
-import android.content.Intent;
 import android.os.Handler;
-import android.test.ActivityUnitTestCase;
+import android.os.Message;
+import android.test.ActivityInstrumentationTestCase2;
 
 import com.ag.poker.dealer.Dealer;
 import com.ag.poker.dealer.gameobjects.Player;
@@ -13,13 +13,15 @@ import com.ag.poker.dealer.logic.PlayerHandler;
 import com.ag.poker.dealer.test.utils.TestToolUtil;
 import com.ag.poker.dealer.utils.constants.DealerConnectionConstants;
 
-public class DealerTest extends ActivityUnitTestCase<Dealer> {
+public class DealerTest extends ActivityInstrumentationTestCase2<Dealer> {
 	
 	private Dealer dealer;
 	private Instrumentation instrumentation;
 
 	public DealerTest() {
-		super(Dealer.class);
+		super("com.ag.poker.dealer", Dealer.class);
+		
+		setName("DealerTest");
 	}
 
 	protected void setUp() throws Exception {
@@ -35,8 +37,6 @@ public class DealerTest extends ActivityUnitTestCase<Dealer> {
 	}
 	
 	public void testClassSetup() {
-		this.dealer = startActivity(new Intent(Intent.ACTION_MAIN), null, null);
-		
 		assertNotNull(this.dealer.getPlayerHandler());
 		assertNotNull(Dealer.dealerConnection);
 		assertTrue(Dealer.dealerConnection.getServer().isAlive());
@@ -44,8 +44,6 @@ public class DealerTest extends ActivityUnitTestCase<Dealer> {
 
 
 	public void testThatThePlayerListStaysConsistentBetweenPauseAndResume() {
-		this.dealer = startActivity(new Intent(Intent.ACTION_MAIN), null, null);
-		
 		int numberOfPlayers = 5;
 		
 		HashMap<String, Player> players = TestToolUtil.createTestPlayers(numberOfPlayers);
@@ -61,8 +59,6 @@ public class DealerTest extends ActivityUnitTestCase<Dealer> {
 	
 
 	public void testThatThePlayerListStaysConsistentBetweenStopAndResume() {
-		this.dealer = startActivity(new Intent(Intent.ACTION_MAIN), null, null);
-		
 		int numberOfPlayers = 5;
 		
 		HashMap<String, Player> players = TestToolUtil.createTestPlayers(numberOfPlayers);
@@ -80,7 +76,6 @@ public class DealerTest extends ActivityUnitTestCase<Dealer> {
 	}
 	
 	public void testThatThePlayerListStaysConsistentBetweenDestroyAndResume() {
-		this.dealer = startActivity(new Intent(Intent.ACTION_MAIN), null, null);
 		
 		int numberOfPlayers = 5;
 		
@@ -96,16 +91,100 @@ public class DealerTest extends ActivityUnitTestCase<Dealer> {
 		
 	}
 	
-	public void testServerHandlerAddPlayer() {
-		this.dealer = startActivity(new Intent(Intent.ACTION_MAIN), null, null);
+	public void testServerHandlerAddPlayer() throws Throwable {
+		final Player player = new Player("player1", "Player 1", 100);
 		
-		Player player = new Player("player1", "Player 1", 100);
-		
-		Handler serverHandler = this.dealer.getServerHandler();
-		
-		serverHandler.sendMessage(serverHandler.obtainMessage(DealerConnectionConstants.PLAYER_DATA_CLIENT_MESSAGE, player));
+		runTestOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				Handler serverHandler = dealer.getServerHandler();
+				
+				Message msg = serverHandler.obtainMessage(DealerConnectionConstants.PLAYER_DATA_CLIENT_MESSAGE, player);
+				serverHandler.sendMessage(msg);
+				
+			}
+		});
 		
 		assertTrue(PlayerHandler.players.containsKey(player.getId()));
 	}
-
+	
+	public void testServerHandlerAddPlayerWithNullArgument() throws Throwable {
+		
+		try {
+			runTestOnUiThread(new Runnable() {
+				
+				@Override
+				public void run() {
+					Handler serverHandler = dealer.getServerHandler();
+					
+					Message msg = serverHandler.obtainMessage(DealerConnectionConstants.PLAYER_DATA_CLIENT_MESSAGE, null);
+					serverHandler.sendMessage(msg);
+					
+				}
+			});
+		} catch (Exception e) {
+			fail("Exception: " + e.getMessage());
+		}
+		
+		assertTrue(PlayerHandler.players.isEmpty());
+	}
+	
+	public void testServerHandlerAddPlayerWithIdNull() throws Throwable {
+		final Player player = new Player(null, "Player 1", 100);
+		
+		runTestOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				Handler serverHandler = dealer.getServerHandler();
+				
+				Message msg = serverHandler.obtainMessage(DealerConnectionConstants.PLAYER_DATA_CLIENT_MESSAGE, player);
+				serverHandler.sendMessage(msg);
+				
+			}
+		});
+		
+		assertFalse(PlayerHandler.players.containsKey(player.getId()));
+		assertTrue(PlayerHandler.players.isEmpty());
+	}
+	
+	public void testServerHandlerAddPlayerWithEmptyId() throws Throwable {
+		final Player player = new Player("", "Player 1", 100);
+		
+		runTestOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				Handler serverHandler = dealer.getServerHandler();
+				
+				Message msg = serverHandler.obtainMessage(DealerConnectionConstants.PLAYER_DATA_CLIENT_MESSAGE, player);
+				serverHandler.sendMessage(msg);
+				
+			}
+		});
+		
+		assertFalse(PlayerHandler.players.containsKey(player.getId()));
+		assertTrue(PlayerHandler.players.isEmpty());
+	}
+	
+	public void testServerHandlerRemovePlayer() throws Throwable {
+		final Player player = new Player("player1", "Player 1", 100);
+		
+		PlayerHandler.players.put(player.getId(), player);
+		
+		runTestOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				Handler serverHandler = dealer.getServerHandler();
+				
+				Message msg = serverHandler.obtainMessage(DealerConnectionConstants.CLIENT_DISCONNECTED, player.getId());
+				serverHandler.sendMessage(msg);
+			}
+		});
+		
+		assertFalse(PlayerHandler.players.containsKey(player.getId()));
+		assertTrue(PlayerHandler.disconnectedPlayers.containsKey(player.getId()));
+	}
 }
