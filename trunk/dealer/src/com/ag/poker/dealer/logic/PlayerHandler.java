@@ -70,7 +70,7 @@ public class PlayerHandler {
 	}
 
 	public boolean addPlayer(Player player) throws UnableToAddPlayerException {
-		if (player == null) {
+		if (player == null || player.getId() == null || player.getId().equals("")) {
 			Log.e(Constants.TAG, "Tried to add empty player");
 			return false;
 		}
