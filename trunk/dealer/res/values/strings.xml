@@ -2,4 +2,12 @@
 <resources>
     <string name="hello">Hello World, Dealer!</string>
     <string name="app_name">Android Poker Dealer</string>
+    
+    <string name="client_connected">Client connected</string>
+    
+    
+    <string name="error_add_player_not_able_to_add_player">An error occured while trying to add player</string>
+    <string name="error_add_player_already_added">Tried to add an existing player</string>
+    <string name="error_add_player_table_full">Table is full, no more players allowed</string>
+    <string name="error_couldnt_start_server">Sorry, couldn\'t start the server, please try again</string>
 </resources>

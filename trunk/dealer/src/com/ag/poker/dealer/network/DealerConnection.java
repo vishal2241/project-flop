@@ -1,172 +1,153 @@
 package com.ag.poker.dealer.network;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.net.Socket;
-
-import org.anddev.andengine.extension.multiplayer.protocol.adt.message.client.BaseClientMessage;
-import org.anddev.andengine.extension.multiplayer.protocol.adt.message.server.BaseServerMessage;
-import org.anddev.andengine.extension.multiplayer.protocol.server.BaseClientConnectionListener;
-import org.anddev.andengine.extension.multiplayer.protocol.server.BaseClientMessageSwitch;
 import org.anddev.andengine.extension.multiplayer.protocol.server.BaseServer;
 import org.anddev.andengine.extension.multiplayer.protocol.server.ClientConnector;
-import org.anddev.andengine.extension.multiplayer.protocol.server.ClientMessageExtractor;
-import org.anddev.andengine.extension.multiplayer.protocol.server.BaseServer.IServerStateListener;
-import org.anddev.andengine.extension.multiplayer.protocol.shared.BaseConnector;
 
 import android.os.Handler;
-import android.os.Message;
-import android.util.Log;
 
-import com.ag.poker.dealer.utils.Constants;
+import com.ag.poker.dealer.exceptions.InitServerException;
+import com.ag.poker.dealer.utils.constants.DealerConnectionConstants;
 
-public class DealerConnection {
+public class DealerConnection implements DealerConnectionConstants {
 
-	public static final int SERVER_RESPONSE = 1;
-	public static final int CLIENT_CONNECTED = 2;
-	
-	protected static final short FLAG_MESSAGE_SERVER_DEAL_CARDS = 1;
+
 
 	private static final int SERVER_PORT = 4444;
 
-	private BaseServer<ClientConnector> mServer;
+	private BaseServer<ClientConnector> server;
+	private ClientConnectionListener clientConnectionListener;
+	private ServerStateListener serverStateListener;
 
-	private Handler mHandler;
+	private Handler handler;
 
 	public DealerConnection(Handler handler) {
-		this.mHandler = handler;
-		initServer();
+		this.handler = handler;
+		this.clientConnectionListener = new ClientConnectionListener(handler);
+		this.serverStateListener = new ServerStateListener(handler);
 	}
 
-	private void initServer() {
-		this.mServer = new BaseServer<ClientConnector>(SERVER_PORT, new ClientConnectionListener(),
-				new ServerStateListener()) {
-			@Override
-			protected ClientConnector newClientConnector(final Socket pClientSocket,
-					final BaseClientConnectionListener pClientConnectionListener) throws Exception {
-				return new ClientConnector(pClientSocket, pClientConnectionListener,
-						new ClientMessageExtractor() {
-							@Override
-							public BaseClientMessage readMessage(final short pFlag,
-									final DataInputStream pDataInputStream) throws IOException {
-								return super.readMessage(pFlag, pDataInputStream);
-							}
-						}, new BaseClientMessageSwitch() {
-							@Override
-							public void doSwitch(final ClientConnector pClientConnector,
-									final BaseClientMessage pClientMessage) throws IOException {
-								super.doSwitch(pClientConnector, pClientMessage);
-								Log.i(Constants.TAG, "SERVER: ClientMessage received: "
-										+ pClientMessage.toString());
-								try {
-									DealerConnection.this.mServer.sendBroadcastServerMessage(new DealCardsServerMessage(5, 10));
-								} catch (IOException e) {
-									Log.e(Constants.TAG, "Error while sending server message", e);
-								}
-							}
-						});
-			}
-			
-		};
-
-		this.mServer.start();
-	}
-
-	private class ServerStateListener implements IServerStateListener {
-		@Override
-		public void onException(Throwable pThrowable) {
-			Message msg = DealerConnection.this.mHandler.obtainMessage(SERVER_RESPONSE);
-			msg.obj = "SERVER: Exception: " + pThrowable;
-			DealerConnection.this.mHandler.sendMessage(msg);
-			Log.i(Constants.TAG, msg.obj.toString());
+	public void initServer() throws InitServerException {
+		if(this.handler == null) {
+			throw new InitServerException("Handler was null");
 		}
+		this.server = new DealerServer<ClientConnector>(SERVER_PORT, this.clientConnectionListener, this.serverStateListener, this.handler);
 
-		@Override
-		public void onStarted(int pPort) {
-			Message msg = DealerConnection.this.mHandler.obtainMessage(SERVER_RESPONSE);
-			msg.obj = "SERVER: started at port: " + pPort;
-			DealerConnection.this.mHandler.sendMessage(msg);
-			Log.i(Constants.TAG, msg.obj.toString());
-		}
-
-		@Override
-		public void onTerminated(int pPort) {
-			Message msg = DealerConnection.this.mHandler.obtainMessage(SERVER_RESPONSE);
-			msg.obj = "SERVER: terminated at port: " + pPort;
-			DealerConnection.this.mHandler.sendMessage(msg);
-			Log.i(Constants.TAG, msg.obj.toString());
-		}
-
-	}
-
-	private class ClientConnectionListener extends BaseClientConnectionListener {
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @seeorg.anddev.andengine.extension.multiplayer.protocol.shared.
-		 * BaseConnectionListener
-		 * #onConnectInner(org.anddev.andengine.extension.multiplayer
-		 * .protocol.shared.BaseConnector)
-		 */
-		@Override
-		protected void onConnectInner(final BaseConnector<BaseClientMessage> pConnector) {
-			Message msg = DealerConnection.this.mHandler.obtainMessage(SERVER_RESPONSE);
-			msg.obj = "SERVER: Client connected: "
-					+ pConnector.getSocket().getInetAddress().getHostAddress();
-			DealerConnection.this.mHandler.sendMessage(msg);
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @seeorg.anddev.andengine.extension.multiplayer.protocol.shared.
-		 * BaseConnectionListener
-		 * #onDisconnectInner(org.anddev.andengine.extension
-		 * .multiplayer.protocol.shared.BaseConnector)
-		 */
-		@Override
-		protected void onDisconnectInner(BaseConnector<BaseClientMessage> pConnector) {
-			Message msg = DealerConnection.this.mHandler.obtainMessage(SERVER_RESPONSE);
-			msg.obj = "SERVER: Client disconnected: "
-					+ pConnector.getSocket().getInetAddress().getHostAddress();
-			DealerConnection.this.mHandler.sendMessage(msg);
-		}
-
+		this.server.start();
 	}
 	
-	private static class DealCardsServerMessage extends BaseServerMessage {
 
-		public final int mCard1;
-		public final int mCard2;
-		
-		public DealCardsServerMessage(final int pCard1, final int pCard2) {
-			this.mCard1 = pCard1;
-			this.mCard2 = pCard2;
-		}
-		
-		public DealCardsServerMessage(final DataInputStream pDataInputStream) throws IOException {
-			this.mCard1 = pDataInputStream.readInt();
-			this.mCard2 = pDataInputStream.readInt();
-		}
-		
-		@Override
-		public short getFlag() {
-			return FLAG_MESSAGE_SERVER_DEAL_CARDS;
-		}
-
-		@Override
-		protected void onAppendTransmissionDataForToString(StringBuilder pStringBuilder) {
-			
-		}
-
-		@Override
-		protected void onWriteTransmissionData(DataOutputStream pDataOutputStream)
-				throws IOException {
-			pDataOutputStream.writeInt(this.mCard1);
-			pDataOutputStream.writeInt(this.mCard2);
-		}
-		
+	/**
+	 * @return the server
+	 */
+	public BaseServer<ClientConnector> getServer() {
+		return server;
 	}
+
+	/**
+	 * @return the handler
+	 */
+	public Handler getHandler() {
+		return handler;
+	}
+
+	/**
+	 * @return the clientConnectionListener
+	 */
+	public ClientConnectionListener getClientConnectionListener() {
+		return clientConnectionListener;
+	}
+
+	/**
+	 * @param clientConnectionListener the clientConnectionListener to set
+	 */
+	public void setClientConnectionListener(ClientConnectionListener clientConnectionListener) {
+		this.clientConnectionListener = clientConnectionListener;
+	}
+
+	/**
+	 * @return the serverStateListener
+	 */
+	public ServerStateListener getServerStateListener() {
+		return serverStateListener;
+	}
+
+	/**
+	 * @param serverStateListener the serverStateListener to set
+	 */
+	public void setServerStateListener(ServerStateListener serverStateListener) {
+		this.serverStateListener = serverStateListener;
+	}
+
+	/**
+	 * @return the serverPort
+	 */
+	public static int getServerPort() {
+		return SERVER_PORT;
+	}
+	
+	
+
+
+
+//	private class ServerStateListener implements IServerStateListener {
+//		@Override
+//		public void onException(Throwable pThrowable) {
+//			Message msg = DealerConnection.this.handler.obtainMessage(SERVER_EXCEPTION);
+//			msg.obj = "SERVER: Exception: " + pThrowable;
+//			DealerConnection.this.handler.sendMessage(msg);
+//			Log.i(Constants.TAG, msg.obj.toString());
+//		}
+//
+//		@Override
+//		public void onStarted(int pPort) {
+//			Message msg = DealerConnection.this.handler.obtainMessage(SERVER_STARTED);
+//			msg.obj = "SERVER: started at port: " + pPort;
+//			DealerConnection.this.handler.sendMessage(msg);
+//			Log.i(Constants.TAG, msg.obj.toString());
+//		}
+//
+//		@Override
+//		public void onTerminated(int pPort) {
+//			Message msg = DealerConnection.this.handler.obtainMessage(SERVER_TERMINATED);
+//			msg.obj = "SERVER: terminated at port: " + pPort;
+//			DealerConnection.this.handler.sendMessage(msg);
+//			Log.i(Constants.TAG, msg.obj.toString());
+//		}
+//
+//	}
+
+//	private class ClientConnectionListener extends BaseClientConnectionListener {
+//
+//		/*
+//		 * (non-Javadoc)
+//		 * 
+//		 * @seeorg.anddev.andengine.extension.multiplayer.protocol.shared.
+//		 * BaseConnectionListener
+//		 * #onConnectInner(org.anddev.andengine.extension.multiplayer
+//		 * .protocol.shared.BaseConnector)
+//		 */
+//		@Override
+//		protected void onConnectInner(final BaseConnector<BaseClientMessage> pConnector) {
+//			Message msg = DealerConnection.this.handler.obtainMessage(SERVER_RESPONSE);
+//			msg.obj = "SERVER: Client connected: "
+//					+ pConnector.getSocket().getInetAddress().getHostAddress();
+//			DealerConnection.this.handler.sendMessage(msg);
+//		}
+//
+//		/*
+//		 * (non-Javadoc)
+//		 * 
+//		 * @seeorg.anddev.andengine.extension.multiplayer.protocol.shared.
+//		 * BaseConnectionListener
+//		 * #onDisconnectInner(org.anddev.andengine.extension
+//		 * .multiplayer.protocol.shared.BaseConnector)
+//		 */
+//		@Override
+//		protected void onDisconnectInner(BaseConnector<BaseClientMessage> pConnector) {
+//			Message msg = DealerConnection.this.handler.obtainMessage(CLIENT_DISCONNECTED);
+//			msg.obj = pConnector.getSocket().getInetAddress().getHostAddress();
+//			DealerConnection.this.handler.sendMessage(msg);
+//		}
+//
+//	}
 }
