@@ -15,13 +15,11 @@
 
 package com.ag.poker.dealer.exceptions;
 
-import com.ag.poker.dealer.R;
-
 /**
  * @author Arild
  *
  */
-public class UnableToAddPlayerException extends Exception {
+public class CardDeckEmptyException extends Exception {
 
 	/**
 	 * 
@@ -30,16 +28,15 @@ public class UnableToAddPlayerException extends Exception {
 	
 	private int responseToUser;
 	
-	public UnableToAddPlayerException() {
-		super("Card deck empty!");
-		this.responseToUser = R.string.error_empty_deck;
+	public CardDeckEmptyException() {
+		super("Unable to add player");
 	}
 
 	/**
 	 * 
 	 */
-	public UnableToAddPlayerException(int responseToUser) {
-		super("Card deck empty!");
+	public CardDeckEmptyException(int responseToUser) {
+		super("Table was full, not able to add any more players");
 		
 		this.responseToUser = responseToUser;
 	}
@@ -48,21 +45,21 @@ public class UnableToAddPlayerException extends Exception {
 	 * @param detailMessage
 	 * @param throwable
 	 */
-	public UnableToAddPlayerException(String detailMessage, Throwable throwable) {
+	public CardDeckEmptyException(String detailMessage, Throwable throwable) {
 		super(detailMessage, throwable);
 	}
 
 	/**
 	 * @param detailMessage
 	 */
-	public UnableToAddPlayerException(String detailMessage) {
+	public CardDeckEmptyException(String detailMessage) {
 		super(detailMessage);
 	}
 
 	/**
 	 * @param throwable
 	 */
-	public UnableToAddPlayerException(Throwable throwable) {
+	public CardDeckEmptyException(Throwable throwable) {
 		super(throwable);
 	}
 

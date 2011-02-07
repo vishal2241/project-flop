@@ -16,6 +16,7 @@
 package com.ag.poker.dealer.gameobjects;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 
 /**
@@ -28,7 +29,9 @@ public class Player {
 	private String name;
 	private double chipCount;
 	private boolean active = true;
-	private int seat;
+	private int seat = -1;
+	private Card card1 = null;
+	private Card card2 = null;
 	
 	public Player(String id) {
 		this.id = id;
@@ -53,6 +56,14 @@ public class Player {
 		this.name = pDataInputStream.readUTF();
 		this.chipCount = pDataInputStream.readDouble();
 		this.seat = pDataInputStream.readInt();
+		
+		try {
+			this.card1 = Card.values()[pDataInputStream.readInt()];
+			this.card2 = Card.values()[pDataInputStream.readInt()];
+		} catch (EOFException e) {
+			//The cards isn't on the stream, just ignore
+		}
+		
 	}
 
 	/**
@@ -114,11 +125,47 @@ public class Player {
 	public void setSeat(int seat) {
 		this.seat = seat;
 	}
+	
+	/**
+	 * @return the card1
+	 */
+	public Card getCard1() {
+		return card1;
+	}
+
+	/**
+	 * @param card1 the card1 to set
+	 */
+	public void setCard1(Card card1) {
+		this.card1 = card1;
+	}
+
+	/**
+	 * @return the card2
+	 */
+	public Card getCard2() {
+		return card2;
+	}
+
+	/**
+	 * @param card2 the card2 to set
+	 */
+	public void setCard2(Card card2) {
+		this.card2 = card2;
+	}
 
 	public void writeDataOutputstream(DataOutputStream dataOutputStream) throws IOException {
 		dataOutputStream.writeUTF(this.id);
 		dataOutputStream.writeUTF(this.name);
 		dataOutputStream.writeDouble(this.chipCount);
 		dataOutputStream.writeInt(this.seat);
+		if(this.card1 != null) {
+			dataOutputStream.writeInt(this.card1.ordinal());
+		}
+		if(this.card2 != null) {
+			dataOutputStream.writeInt(this.card2.ordinal());
+		}
+		
+		dataOutputStream.flush();
 	}
 }
