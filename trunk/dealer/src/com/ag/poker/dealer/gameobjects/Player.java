@@ -29,7 +29,6 @@ public class Player {
 	private String name;
 	private double chipCount;
 	private boolean active = true;
-	private int seat = -1;
 	private Card card1 = null;
 	private Card card2 = null;
 	
@@ -55,7 +54,6 @@ public class Player {
 		this.id = pDataInputStream.readUTF();
 		this.name = pDataInputStream.readUTF();
 		this.chipCount = pDataInputStream.readDouble();
-		this.seat = pDataInputStream.readInt();
 		
 		try {
 			this.card1 = Card.values()[pDataInputStream.readInt()];
@@ -111,21 +109,6 @@ public class Player {
 		this.active = active;
 	}
 	
-
-	/**
-	 * @return the seat
-	 */
-	public int getSeat() {
-		return seat;
-	}
-
-	/**
-	 * @param seat the seat to set
-	 */
-	public void setSeat(int seat) {
-		this.seat = seat;
-	}
-	
 	/**
 	 * @return the card1
 	 */
@@ -158,7 +141,6 @@ public class Player {
 		dataOutputStream.writeUTF(this.id);
 		dataOutputStream.writeUTF(this.name);
 		dataOutputStream.writeDouble(this.chipCount);
-		dataOutputStream.writeInt(this.seat);
 		if(this.card1 != null) {
 			dataOutputStream.writeInt(this.card1.ordinal());
 		}

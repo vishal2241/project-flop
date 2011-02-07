@@ -7,14 +7,15 @@ import java.io.IOException;
 import org.anddev.andengine.extension.multiplayer.protocol.adt.message.server.BaseServerMessage;
 
 import com.ag.poker.dealer.gameobjects.Player;
-import com.ag.poker.dealer.network.DealerConnection;
 
 public class PlayerDataServerMessage extends BaseServerMessage {
 
 	private Player player;
+	private short flag;
 	
-	public PlayerDataServerMessage(Player player) {
+	public PlayerDataServerMessage(Player player, short flag) {
 		this.player = player;
+		this.flag = flag;
 	}
 	
 	public PlayerDataServerMessage(final DataInputStream pDataInputStream) throws IOException {
@@ -26,7 +27,7 @@ public class PlayerDataServerMessage extends BaseServerMessage {
 	 */
 	@Override
 	public short getFlag() {
-		return DealerConnection.FLAG_MESSAGE_CLIENT_REGISTERING;
+		return flag;
 	}
 
 	/* (non-Javadoc)

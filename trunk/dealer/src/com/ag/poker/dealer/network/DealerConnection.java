@@ -35,6 +35,13 @@ public class DealerConnection implements DealerConnectionConstants {
 		this.server.start();
 	}
 	
+	public void terminateServer() {
+		if(this.server != null) {
+			this.server.stop();
+			handler.sendEmptyMessage(SERVER_TERMINATED);
+			this.server = null;
+		}
+	}
 
 	/**
 	 * @return the server

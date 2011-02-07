@@ -1,7 +1,5 @@
 package com.ag.poker.dealer.test;
 
-import java.util.HashMap;
-
 import android.app.Instrumentation;
 import android.os.Handler;
 import android.os.Message;
@@ -9,6 +7,7 @@ import android.test.ActivityInstrumentationTestCase2;
 
 import com.ag.poker.dealer.Dealer;
 import com.ag.poker.dealer.gameobjects.Player;
+import com.ag.poker.dealer.gameobjects.PlayerList;
 import com.ag.poker.dealer.logic.PlayerHandler;
 import com.ag.poker.dealer.test.utils.TestToolUtil;
 import com.ag.poker.dealer.utils.constants.DealerConnectionConstants;
@@ -36,9 +35,8 @@ public class DealerTest extends ActivityInstrumentationTestCase2<Dealer> {
 	}
 	
 	public void testClassSetup() {
-		assertNotNull(Dealer.getPokerRoundHandler());
-		assertNotNull(Dealer.dealerConnection);
-		assertTrue(Dealer.dealerConnection.getServer().isAlive());
+		assertNotNull(Dealer.getPokerRoundService());
+		assertNotNull(Dealer.networkService);
 		
 		this.dealer.onLoadResources();
 		
@@ -49,7 +47,7 @@ public class DealerTest extends ActivityInstrumentationTestCase2<Dealer> {
 	public void testThatThePlayerListStaysConsistentBetweenPauseAndResume() {
 		int numberOfPlayers = 5;
 		
-		HashMap<String, Player> players = TestToolUtil.createTestPlayers(numberOfPlayers);
+		PlayerList players = TestToolUtil.createTestPlayers(numberOfPlayers);
 		PlayerHandler.setPlayers(players);
 		
 		this.instrumentation.callActivityOnPause(this.dealer);
@@ -64,7 +62,7 @@ public class DealerTest extends ActivityInstrumentationTestCase2<Dealer> {
 	public void testThatThePlayerListStaysConsistentBetweenStopAndResume() {
 		int numberOfPlayers = 5;
 		
-		HashMap<String, Player> players = TestToolUtil.createTestPlayers(numberOfPlayers);
+		PlayerList players = TestToolUtil.createTestPlayers(numberOfPlayers);
 		PlayerHandler.setPlayers(players);
 		
 		this.instrumentation.callActivityOnPause(this.dealer);
@@ -82,7 +80,7 @@ public class DealerTest extends ActivityInstrumentationTestCase2<Dealer> {
 		
 		int numberOfPlayers = 5;
 		
-		HashMap<String, Player> players = TestToolUtil.createTestPlayers(numberOfPlayers);
+		PlayerList players = TestToolUtil.createTestPlayers(numberOfPlayers);
 		PlayerHandler.setPlayers(players);
 		
 		this.instrumentation.callActivityOnDestroy(this.dealer);
@@ -101,7 +99,7 @@ public class DealerTest extends ActivityInstrumentationTestCase2<Dealer> {
 			
 			@Override
 			public void run() {
-				Handler serverHandler = dealer.getServerHandler();
+				Handler serverHandler = dealer.getServerMessageHandler();
 				
 				Message msg = serverHandler.obtainMessage(DealerConnectionConstants.PLAYER_DATA_CLIENT_MESSAGE, player);
 				serverHandler.sendMessage(msg);
@@ -109,7 +107,7 @@ public class DealerTest extends ActivityInstrumentationTestCase2<Dealer> {
 			}
 		});
 		
-		assertTrue(PlayerHandler.players.containsKey(player.getId()));
+		assertTrue(PlayerHandler.players.contains(player.getId()));
 	}
 	
 	public void testServerHandlerAddPlayerWithNullArgument() throws Throwable {
@@ -119,7 +117,7 @@ public class DealerTest extends ActivityInstrumentationTestCase2<Dealer> {
 				
 				@Override
 				public void run() {
-					Handler serverHandler = dealer.getServerHandler();
+					Handler serverHandler = dealer.getServerMessageHandler();
 					
 					Message msg = serverHandler.obtainMessage(DealerConnectionConstants.PLAYER_DATA_CLIENT_MESSAGE, null);
 					serverHandler.sendMessage(msg);
@@ -140,7 +138,7 @@ public class DealerTest extends ActivityInstrumentationTestCase2<Dealer> {
 			
 			@Override
 			public void run() {
-				Handler serverHandler = dealer.getServerHandler();
+				Handler serverHandler = dealer.getServerMessageHandler();
 				
 				Message msg = serverHandler.obtainMessage(DealerConnectionConstants.PLAYER_DATA_CLIENT_MESSAGE, player);
 				serverHandler.sendMessage(msg);
@@ -148,7 +146,7 @@ public class DealerTest extends ActivityInstrumentationTestCase2<Dealer> {
 			}
 		});
 		
-		assertFalse(PlayerHandler.players.containsKey(player.getId()));
+		assertFalse(PlayerHandler.players.contains(player.getId()));
 		assertTrue(PlayerHandler.players.isEmpty());
 	}
 	
@@ -159,7 +157,7 @@ public class DealerTest extends ActivityInstrumentationTestCase2<Dealer> {
 			
 			@Override
 			public void run() {
-				Handler serverHandler = dealer.getServerHandler();
+				Handler serverHandler = dealer.getServerMessageHandler();
 				
 				Message msg = serverHandler.obtainMessage(DealerConnectionConstants.PLAYER_DATA_CLIENT_MESSAGE, player);
 				serverHandler.sendMessage(msg);
@@ -167,27 +165,27 @@ public class DealerTest extends ActivityInstrumentationTestCase2<Dealer> {
 			}
 		});
 		
-		assertFalse(PlayerHandler.players.containsKey(player.getId()));
+		assertFalse(PlayerHandler.players.contains(player.getId()));
 		assertTrue(PlayerHandler.players.isEmpty());
 	}
 	
 	public void testServerHandlerRemovePlayer() throws Throwable {
 		final Player player = new Player("player1", "Player 1", 100);
 		
-		PlayerHandler.players.put(player.getId(), player);
+		PlayerHandler.players.add(player);
 		
 		runTestOnUiThread(new Runnable() {
 			
 			@Override
 			public void run() {
-				Handler serverHandler = dealer.getServerHandler();
+				Handler serverHandler = dealer.getServerMessageHandler();
 				
 				Message msg = serverHandler.obtainMessage(DealerConnectionConstants.CLIENT_DISCONNECTED, player.getId());
 				serverHandler.sendMessage(msg);
 			}
 		});
 		
-		assertFalse(PlayerHandler.players.containsKey(player.getId()));
+		assertFalse(PlayerHandler.players.contains(player.getId()));
 		assertTrue(PlayerHandler.disconnectedPlayers.containsKey(player.getId()));
 	}
 }

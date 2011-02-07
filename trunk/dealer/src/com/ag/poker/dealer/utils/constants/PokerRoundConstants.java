@@ -21,10 +21,16 @@ package com.ag.poker.dealer.utils.constants;
  */
 public interface PokerRoundConstants {
 	
-	public static final int FLAG_ROUND_STATE_START = 0;
+	public static final int FLAG_ROUND_STATE_START_NEW_ROUND = 0;
 	public static final int FLAG_ROUND_STATE_FLOP = 1;
 	public static final int FLAG_ROUND_STATE_TURN = 2;
 	public static final int FLAG_ROUND_STATE_RIVER = 3;
-	public static final int FLAG_ROUND_STATE_FINISHED = 4;
+	public static final int FLAG_ROUND_STATE_FINISH_ROUND = 4;
+	
+	
+	public static final int FLAG_ROUND_STATE_WAITING_FOR_BLINDS = 5;
+	public static final int FLAG_ROUND_STATE_WAITING_FOR_BETS = 6;
+	public static final int FLAG_ROUND_STATE_COLLECT_BLINDS = 7;
+	public static final int FLAG_ROUND_STATE_COLLECT_BETS = 8;
 
 }
