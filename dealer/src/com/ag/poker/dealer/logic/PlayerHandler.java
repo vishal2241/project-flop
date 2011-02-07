@@ -19,10 +19,10 @@ import java.util.HashMap;
 
 import android.util.Log;
 
-import com.ag.poker.dealer.Dealer;
 import com.ag.poker.dealer.R;
 import com.ag.poker.dealer.exceptions.UnableToAddPlayerException;
 import com.ag.poker.dealer.gameobjects.Player;
+import com.ag.poker.dealer.gameobjects.PlayerList;
 import com.ag.poker.dealer.utils.Constants;
 
 /**
@@ -31,11 +31,11 @@ import com.ag.poker.dealer.utils.Constants;
  */
 public class PlayerHandler {
 
-	public static HashMap<String, Player> players;
+	public static PlayerList players;
 	public static HashMap<String, Player> disconnectedPlayers;
 
 	public PlayerHandler() {
-		PlayerHandler.players = new HashMap<String, Player>(7);
+		PlayerHandler.players = new PlayerList(7);
 
 		PlayerHandler.disconnectedPlayers = new HashMap<String, Player>(5);
 	}
@@ -43,7 +43,7 @@ public class PlayerHandler {
 	/**
 	 * @return the players
 	 */
-	public static HashMap<String, Player> getPlayers() {
+	public static PlayerList getPlayers() {
 		return players;
 	}
 
@@ -51,8 +51,8 @@ public class PlayerHandler {
 	 * @param players
 	 *            the players to set
 	 */
-	public static void setPlayers(HashMap<String, Player> players) {
-		PlayerHandler.players.putAll(players);
+	public static void setPlayers(PlayerList players) {
+		PlayerHandler.players.addAll(players);
 	}
 
 	/**
@@ -81,25 +81,23 @@ public class PlayerHandler {
 			throw new UnableToAddPlayerException(R.string.error_add_player_table_full);
 		}
 
-		if (players.containsKey(player.getId())) {
+		if (players.contains(player.getId())) {
 			Log.i(Constants.TAG, "Player already exists, NOT ADDED: " + player.getId());
 			return false;
 		} else if (PlayerHandler.disconnectedPlayers.containsKey(player.getId())) {
 			Player disconnectedPlayer = PlayerHandler.disconnectedPlayers.get(player.getId());
-			PlayerHandler.players.put(disconnectedPlayer.getId(), disconnectedPlayer);
-			disconnectedPlayer.setSeat(Dealer.getAvailableSeat());
+			PlayerHandler.players.add(disconnectedPlayer);
 			PlayerHandler.disconnectedPlayers.remove(player.getId());
 			return true;
 		} else {
-			PlayerHandler.players.put(player.getId(), player);
-			player.setSeat(Dealer.getAvailableSeat());
+			PlayerHandler.players.add(player);
 			Log.i(Constants.TAG, "Player added: " + player.getId());
 			return true;
 		}
 	}
 
 	public void setPlayerInactive(String playerId) {
-		if (!PlayerHandler.players.isEmpty() && PlayerHandler.players.containsKey(playerId)) {
+		if (!PlayerHandler.players.isEmpty() && PlayerHandler.players.contains(playerId)) {
 			PlayerHandler.players.get(playerId).setActive(false);
 			Log.i(Constants.TAG, "Player deactivated: " + playerId);
 		}
@@ -111,9 +109,6 @@ public class PlayerHandler {
 		if (player != null) {
 			PlayerHandler.disconnectedPlayers.put(player.getId(), player);
 			PlayerHandler.players.remove(playerId);
-			if(player.getSeat() > 0) {
-				Dealer.addAvailableSeat(player.getSeat());
-			}
 		}
 	}
 

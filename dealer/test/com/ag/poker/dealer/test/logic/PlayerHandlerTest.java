@@ -30,7 +30,7 @@ public class PlayerHandlerTest extends AndroidTestCase {
 		
 		assertTrue(result);
 		assertEquals(1, PlayerHandler.getPlayers().size());
-		assertTrue(PlayerHandler.getPlayers().containsKey(key));
+		assertTrue(PlayerHandler.getPlayers().contains(key));
 		
 		Player actual = PlayerHandler.getPlayers().get(key);
 		
@@ -52,7 +52,7 @@ public class PlayerHandlerTest extends AndroidTestCase {
 		
 		Player player = new Player(key, "Test Player", 10);
 		
-		PlayerHandler.getPlayers().put(key, player);
+		PlayerHandler.getPlayers().add(player);
 		
 		boolean result = this.playerHandler.addPlayer(player);
 		
@@ -75,7 +75,7 @@ public class PlayerHandlerTest extends AndroidTestCase {
 		
 		assertTrue(result);
 		
-		assertTrue(PlayerHandler.getPlayers().containsKey(key));
+		assertTrue(PlayerHandler.getPlayers().contains(key));
 		assertFalse(PlayerHandler.getDisconnectedPlayers().containsKey(key));
 	}
 	
@@ -84,7 +84,7 @@ public class PlayerHandlerTest extends AndroidTestCase {
 		
 		Player player = new Player(playerId, "Test Player", 10);
 		
-		PlayerHandler.getPlayers().put(playerId, player);
+		PlayerHandler.getPlayers().add(player);
 		
 		assertTrue(PlayerHandler.getPlayers().get(playerId).isActive());
 		
@@ -108,7 +108,7 @@ public class PlayerHandlerTest extends AndroidTestCase {
 		String playerId = "testplayer";
 		Player player = new Player(playerId, "Test Player", 10);
 		
-		PlayerHandler.getPlayers().put(playerId, player);
+		PlayerHandler.getPlayers().add(player);
 		
 		try {
 			this.playerHandler.setPlayerInactive(null);
@@ -125,18 +125,18 @@ public class PlayerHandlerTest extends AndroidTestCase {
 		String player2Id = "testplayer2";
 		Player player2 = new Player(player2Id, "Test Player2", 10);
 		
-		PlayerHandler.getPlayers().put(player1Id, player1);
-		PlayerHandler.getPlayers().put(player2Id, player2);
+		PlayerHandler.getPlayers().add(player1);
+		PlayerHandler.getPlayers().add(player2);
 		
 		assertEquals(2, PlayerHandler.getPlayers().size());
-		assertTrue(PlayerHandler.getPlayers().containsKey(player1Id));
-		assertTrue(PlayerHandler.getPlayers().containsKey(player2Id));
+		assertTrue(PlayerHandler.getPlayers().contains(player1Id));
+		assertTrue(PlayerHandler.getPlayers().contains(player2Id));
 		
 		this.playerHandler.removePlayer(player1Id);
 		
 		assertEquals(1, PlayerHandler.getPlayers().size());
-		assertFalse(PlayerHandler.getPlayers().containsKey(player1Id));
-		assertTrue(PlayerHandler.getPlayers().containsKey(player2Id));
+		assertFalse(PlayerHandler.getPlayers().contains(player1Id));
+		assertTrue(PlayerHandler.getPlayers().contains(player2Id));
 	}
 	
 	public void testRemoveNonExistingPlayer() {
@@ -146,18 +146,18 @@ public class PlayerHandlerTest extends AndroidTestCase {
 		String player2Id = "testplayer2";
 		Player player2 = new Player(player2Id, "Test Player2", 10);
 		
-		PlayerHandler.getPlayers().put(player1Id, player1);
-		PlayerHandler.getPlayers().put(player2Id, player2);
+		PlayerHandler.getPlayers().add(player1);
+		PlayerHandler.getPlayers().add(player2);
 		
 		assertEquals(2, PlayerHandler.getPlayers().size());
-		assertTrue(PlayerHandler.getPlayers().containsKey(player1Id));
-		assertTrue(PlayerHandler.getPlayers().containsKey(player2Id));
+		assertTrue(PlayerHandler.getPlayers().contains(player1Id));
+		assertTrue(PlayerHandler.getPlayers().contains(player2Id));
 		
 		this.playerHandler.removePlayer("wrongId");
 		
 		assertEquals(2, PlayerHandler.getPlayers().size());
-		assertTrue(PlayerHandler.getPlayers().containsKey(player1Id));
-		assertTrue(PlayerHandler.getPlayers().containsKey(player2Id));
+		assertTrue(PlayerHandler.getPlayers().contains(player1Id));
+		assertTrue(PlayerHandler.getPlayers().contains(player2Id));
 	}
 	
 	public void testRemoveNullPlayer() {
@@ -167,18 +167,18 @@ public class PlayerHandlerTest extends AndroidTestCase {
 		String player2Id = "testplayer2";
 		Player player2 = new Player(player2Id, "Test Player2", 10);
 		
-		PlayerHandler.getPlayers().put(player1Id, player1);
-		PlayerHandler.getPlayers().put(player2Id, player2);
+		PlayerHandler.getPlayers().add(player1);
+		PlayerHandler.getPlayers().add(player2);
 		
 		assertEquals(2, PlayerHandler.getPlayers().size());
-		assertTrue(PlayerHandler.getPlayers().containsKey(player1Id));
-		assertTrue(PlayerHandler.getPlayers().containsKey(player2Id));
+		assertTrue(PlayerHandler.getPlayers().contains(player1Id));
+		assertTrue(PlayerHandler.getPlayers().contains(player2Id));
 		
 		this.playerHandler.removePlayer(null);
 		
 		assertEquals(2, PlayerHandler.getPlayers().size());
-		assertTrue(PlayerHandler.getPlayers().containsKey(player1Id));
-		assertTrue(PlayerHandler.getPlayers().containsKey(player2Id));
+		assertTrue(PlayerHandler.getPlayers().contains(player1Id));
+		assertTrue(PlayerHandler.getPlayers().contains(player2Id));
 	}
 	
 }

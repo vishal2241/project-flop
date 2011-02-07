@@ -51,7 +51,6 @@ public class PlayerTest extends TestCase {
 	}
 
 	public void testPlayerDataInputStream() throws IOException {
-		int seat = 3;
 		Card card1 = Card.CLUB_EIGHT;
 		Card card2 = Card.DIAMOND_SEVEN;
 		
@@ -61,7 +60,6 @@ public class PlayerTest extends TestCase {
 		dataOutputStream.writeUTF(player.getId());
 		dataOutputStream.writeUTF(player.getName());
 		dataOutputStream.writeDouble(player.getChipCount());
-		dataOutputStream.writeInt(seat);
 		dataOutputStream.writeInt(card1.ordinal());
 		dataOutputStream.writeInt(card2.ordinal());
 		dataOutputStream.flush();
@@ -74,13 +72,11 @@ public class PlayerTest extends TestCase {
 		assertEquals(player.getId(), actual.getId());
 		assertEquals(player.getName(), actual.getName());
 		assertEquals(player.getChipCount(), actual.getChipCount());
-		assertEquals(seat, actual.getSeat());
 		assertEquals(card1, actual.getCard1());
 		assertEquals(card2, actual.getCard2());
 	}
 	
 	public void testPlayerDataInputStreamWithoutCards() throws IOException {
-		int seat = -1;
 		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		DataOutputStream dataOutputStream = new DataOutputStream(baos);
@@ -88,7 +84,6 @@ public class PlayerTest extends TestCase {
 		dataOutputStream.writeUTF(player.getId());
 		dataOutputStream.writeUTF(player.getName());
 		dataOutputStream.writeDouble(player.getChipCount());
-		dataOutputStream.writeInt(seat);
 		dataOutputStream.flush();
 		
 		ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
@@ -99,13 +94,11 @@ public class PlayerTest extends TestCase {
 		assertEquals(player.getId(), actual.getId());
 		assertEquals(player.getName(), actual.getName());
 		assertEquals(player.getChipCount(), actual.getChipCount());
-		assertEquals(seat, actual.getSeat());
 		assertEquals(null, actual.getCard1());
 		assertEquals(null, actual.getCard2());
 	}
 
 	public void testPlayerWriteDataOutputstream() throws IOException {
-		player.setSeat(3);
 		player.setCard1(Card.CLUB_EIGHT);
 		player.setCard2(Card.DIAMOND_SEVEN);
 		
@@ -120,14 +113,12 @@ public class PlayerTest extends TestCase {
 		String playerId = dataInputStream.readUTF();
 		String name = dataInputStream.readUTF();
 		Double chipCount = dataInputStream.readDouble();
-		int seat = dataInputStream.readInt();
 		Card card1 = Card.values()[dataInputStream.readInt()];
 		Card card2 = Card.values()[dataInputStream.readInt()];
 		
 		assertEquals(player.getId(), playerId);
 		assertEquals(player.getName(), name);
 		assertEquals(player.getChipCount(), chipCount);
-		assertEquals(player.getSeat(), seat);
 		assertEquals(player.getCard1(), card1);
 		assertEquals(player.getCard2(), card2);
 	}
@@ -145,7 +136,6 @@ public class PlayerTest extends TestCase {
 		String playerId = dataInputStream.readUTF();
 		String name = dataInputStream.readUTF();
 		Double chipCount = dataInputStream.readDouble();
-		int seat = dataInputStream.readInt();
 		try {
 			dataInputStream.readInt();
 			dataInputStream.readInt();
@@ -157,7 +147,6 @@ public class PlayerTest extends TestCase {
 		assertEquals(player.getId(), playerId);
 		assertEquals(player.getName(), name);
 		assertEquals(player.getChipCount(), chipCount);
-		assertEquals(player.getSeat(), seat);
 	}
 
 }

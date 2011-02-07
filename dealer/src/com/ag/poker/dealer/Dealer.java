@@ -1,6 +1,6 @@
 package com.ag.poker.dealer;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -34,13 +34,13 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.ag.poker.dealer.exceptions.CardDeckEmptyException;
-import com.ag.poker.dealer.exceptions.InitServerException;
 import com.ag.poker.dealer.exceptions.UnableToAddPlayerException;
 import com.ag.poker.dealer.gameobjects.Card;
 import com.ag.poker.dealer.gameobjects.Player;
 import com.ag.poker.dealer.logic.PlayerHandler;
 import com.ag.poker.dealer.logic.PokerRoundService;
-import com.ag.poker.dealer.network.DealerConnection;
+import com.ag.poker.dealer.network.NetworkService;
+import com.ag.poker.dealer.network.NetworkServiceImpl;
 import com.ag.poker.dealer.utils.Constants;
 import com.ag.poker.dealer.utils.constants.DealerConnectionConstants;
 import com.ag.poker.dealer.utils.constants.PokerRoundConstants;
@@ -48,7 +48,9 @@ import com.ag.poker.dealer.utils.constants.PokerRoundConstants;
 public class Dealer extends BaseGameActivity implements
 		DealerConnectionConstants, PokerRoundConstants {
 
-	public static DealerConnection dealerConnection;
+//	public static DealerConnection dealerConnection;
+	
+	public static NetworkService networkService;
 
 	private static final int SCENE_NUMBER_OF_LAYERS = 4;
 
@@ -71,18 +73,16 @@ public class Dealer extends BaseGameActivity implements
 	private HashMap<Card, TextureRegion> cardToTextureRegionMap;
 
 	private Vector<Sprite> cardSpritesOnTable;
-	public static Vector<Player> seats;
 
-	private static Vector<Integer> availableSeats;
-	
 	private static Vector<ChangeableText> playerTexts;
 
 	private float widthTablePerCard = 0.0f;
 	private float topOfTableCard = 0.0f;
 
-	private static PokerRoundService pokerRoundHandler;
+	private static PokerRoundService pokerRoundService;
 
 	private static ServerMessageHandler serverMessageHandler;
+	private static PokerRoundMessageHandler pokerRoundMessageHandler;
 
 	/*
 	 * (non-Javadoc)
@@ -97,29 +97,16 @@ public class Dealer extends BaseGameActivity implements
 
 		cardSpritesOnTable = new Vector<Sprite>(5);
 
-		seats = new Vector<Player>(Constants.MAX_NUMBERS_OF_PLAYERS);
-
 		playerTexts = new Vector<ChangeableText>(Constants.MAX_NUMBERS_OF_PLAYERS);
 		
-		availableSeats = new Vector<Integer>(Constants.MAX_NUMBERS_OF_PLAYERS);
-		for(int seatNumber = 0; seatNumber < Constants.MAX_NUMBERS_OF_PLAYERS; seatNumber++) {
-			availableSeats.add(seatNumber);
-		}
-
-		Dealer.pokerRoundHandler = new PokerRoundService(pokerRoundMsgHandler);
-
 		Dealer.serverMessageHandler = new ServerMessageHandler();
+		Dealer.pokerRoundMessageHandler = new PokerRoundMessageHandler();
+		
+		Dealer.pokerRoundService = new PokerRoundService(Dealer.pokerRoundMessageHandler);
+		
+		Dealer.networkService = new NetworkServiceImpl(Dealer.serverMessageHandler);
 
-		Dealer.dealerConnection = new DealerConnection(
-				Dealer.serverMessageHandler);
-		try {
-			Dealer.dealerConnection.initServer();
-		} catch (InitServerException e) {
-			Log.e(Constants.TAG, e.getMessage());
-			Toast.makeText(getApplicationContext(),
-					R.string.error_couldnt_start_server, Toast.LENGTH_LONG)
-					.show();
-		}
+
 	}
 
 	/**
@@ -158,23 +145,16 @@ public class Dealer extends BaseGameActivity implements
 	/**
 	 * @return the pokerRoundHandler
 	 */
-	public static PokerRoundService getPokerRoundHandler() {
-		return pokerRoundHandler;
+	public static PokerRoundService getPokerRoundService() {
+		return pokerRoundService;
 	}
 
 	/**
-	 * @param pokerRoundHandler
+	 * @param pokerRoundService
 	 *            the pokerRoundHandler to set
 	 */
-	public static void setPokerRoundHandler(PokerRoundService pokerRoundHandler) {
-		Dealer.pokerRoundHandler = pokerRoundHandler;
-	}
-
-	/**
-	 * @return the dealerConnection
-	 */
-	public static DealerConnection getDealerConnection() {
-		return dealerConnection;
+	public static void setPokerRoundService(PokerRoundService pokerRoundService) {
+		Dealer.pokerRoundService = pokerRoundService;
 	}
 
 	/**
@@ -187,21 +167,10 @@ public class Dealer extends BaseGameActivity implements
 	/**
 	 * @return the serverHandler
 	 */
-	public Handler getServerHandler() {
+	public Handler getServerMessageHandler() {
 		return Dealer.serverMessageHandler;
 	}
-
-	private final Handler pokerRoundMsgHandler = new Handler() {
-		@Override
-		public void handleMessage(Message msg) {
-			if (msg.what == FLAG_ROUND_STATE_START) {
-				mEngine.getScene().getChild(SCENE_LAYER_COMMUNITY_CARDS)
-						.detachChildren();
-				cardSpritesOnTable.clear();
-			}
-		}
-	};
-
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -296,8 +265,7 @@ public class Dealer extends BaseGameActivity implements
 					@Override
 					public void onTimePassed(TimerHandler pTimerHandler) {
 						int index = 0;
-						for (Player player : PlayerHandler.getPlayers()
-								.values()) {
+						for (Player player : PlayerHandler.getPlayers()) {
 							playerTexts.get(index).setText(player.getId());
 							index++;
 						}
@@ -384,18 +352,21 @@ public class Dealer extends BaseGameActivity implements
 					this.setScale(CARD_SCALE + 0.25f);
 					this.mGrabbed = true;
 					try {
-						ArrayList<Card> drawnCards = Dealer.pokerRoundHandler
-								.drawCardsForTable();
-
-						for (Card card : drawnCards) {
-							addCard(pScene, card);
-						}
+//						ArrayList<Card> drawnCards = Dealer.pokerRoundService
+//								.drawCardsForTable();
+//
+//						for (Card card : drawnCards) {
+//							addCard(pScene, card);
+//						}
+						Dealer.pokerRoundService.nextStage();
 
 					} catch (CardDeckEmptyException e) {
 						Log.e(Constants.TAG, e.getMessage());
 						Toast.makeText(getApplicationContext(),
 								e.getResponseToUser(), Toast.LENGTH_LONG)
 								.show();
+					} catch (IOException e) {
+						Log.e(Constants.TAG, e.getMessage());
 					}
 					break;
 				// case TouchEvent.ACTION_MOVE:
@@ -427,22 +398,18 @@ public class Dealer extends BaseGameActivity implements
 		cardSpritesOnTable.clear();
 	}
 
-	private void updatePlayersAtTable() {
-		for (Player player : seats) {
-			playerTexts.get(player.getSeat()).setText(player.getName());
-		}
-	}
-
-	public static int getAvailableSeat() {
-		int seat = Dealer.availableSeats.firstElement();
-		Dealer.availableSeats.remove(0);
-		
-		return seat;
-	}
 	
-	public static void addAvailableSeat(int seat) {
-		Dealer.availableSeats.add(seat);
-	}
+	private class PokerRoundMessageHandler extends Handler {
+		
+		@Override
+		public void handleMessage(Message msg) {
+			if (msg.what == FLAG_ROUND_STATE_START_NEW_ROUND) {
+				mEngine.getScene().getChild(SCENE_LAYER_COMMUNITY_CARDS)
+						.detachChildren();
+				cardSpritesOnTable.clear();
+			}
+		}
+	};
 	
 	private class ServerMessageHandler extends Handler {
 
@@ -477,10 +444,6 @@ public class Dealer extends BaseGameActivity implements
 					try {
 						Player player = (Player) msg.obj;
 						PokerRoundService.getPlayerHandler().addPlayer(player);
-
-						seats.add(player);
-
-						updatePlayersAtTable();
 
 					} catch (UnableToAddPlayerException e) {
 						if (e.getResponseToUser() > 0) {

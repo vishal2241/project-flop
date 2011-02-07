@@ -15,13 +15,16 @@
 
 package com.ag.poker.dealer.logic;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import android.os.Handler;
 import android.util.Log;
 
+import com.ag.poker.dealer.Dealer;
 import com.ag.poker.dealer.exceptions.CardDeckEmptyException;
 import com.ag.poker.dealer.gameobjects.Card;
+import com.ag.poker.dealer.gameobjects.Player;
 import com.ag.poker.dealer.utils.Constants;
 import com.ag.poker.dealer.utils.constants.PokerRoundConstants;
 
@@ -36,9 +39,15 @@ public class PokerRoundService implements PokerRoundConstants {
 	private static CardDeckHandler cardDeckHandler;
 	private static PlayerHandler playerHandler;
 	
+	private int dealer = -1;
+	private int smallBlind;
+	private int bigBlind;
+	
+	private static boolean bigBlindPaid = false;
+	private static boolean smallBlindPaid = false;
 	
 	public PokerRoundService(Handler pokerRoundMsgHandler) {
-		round_state = FLAG_ROUND_STATE_START;
+		round_state = FLAG_ROUND_STATE_START_NEW_ROUND;
 		this.pokerRoundMsgHandler = pokerRoundMsgHandler;
 		
 		PokerRoundService.cardDeckHandler = new CardDeckHandler();
@@ -80,11 +89,11 @@ public class PokerRoundService implements PokerRoundConstants {
 		return playerHandler;
 	}
 
-	public ArrayList<Card> drawCardsForTable() throws CardDeckEmptyException {
+	private ArrayList<Card> drawCardsForTable() throws CardDeckEmptyException, IOException {
 		ArrayList<Card> drawnCards = new ArrayList<Card>();
 		
 		switch (round_state) {
-		case FLAG_ROUND_STATE_START:
+		case FLAG_ROUND_STATE_START_NEW_ROUND:
 			drawnCards.add(PokerRoundService.getCardDeckHandler().drawCardForTable(true));
 			drawnCards.add(PokerRoundService.getCardDeckHandler().drawCardForTable(false));
 			drawnCards.add(PokerRoundService.getCardDeckHandler().drawCardForTable(false));
@@ -96,12 +105,12 @@ public class PokerRoundService implements PokerRoundConstants {
 			break;
 		case FLAG_ROUND_STATE_TURN:
 			drawnCards.add(PokerRoundService.getCardDeckHandler().drawCardForTable(true));
-			round_state = FLAG_ROUND_STATE_FINISHED;
+			round_state = FLAG_ROUND_STATE_FINISH_ROUND;
 			break;
 		case FLAG_ROUND_STATE_RIVER:
-			round_state = FLAG_ROUND_STATE_FINISHED;
+			round_state = FLAG_ROUND_STATE_FINISH_ROUND;
 			break;
-		case FLAG_ROUND_STATE_FINISHED:
+		case FLAG_ROUND_STATE_FINISH_ROUND:
 			startNewRound();
 			break;
 		default:
@@ -112,10 +121,44 @@ public class PokerRoundService implements PokerRoundConstants {
 		return drawnCards;
 	}
 	
-	public void startNewRound() {
-		PokerRoundService.getCardDeckHandler().resetCardDeck();
-		round_state = FLAG_ROUND_STATE_START;
-		pokerRoundMsgHandler.sendEmptyMessage(FLAG_ROUND_STATE_START);
-	}
+	public void nextStage() throws CardDeckEmptyException, IOException {
+		switch (round_state) {
+		case FLAG_ROUND_STATE_START_NEW_ROUND:
+			startNewRound();
+			round_state = FLAG_ROUND_STATE_WAITING_FOR_BLINDS;
+			break;
+		case FLAG_ROUND_STATE_WAITING_FOR_BLINDS:
+			if(smallBlindPaid && bigBlindPaid) {
+				round_state = FLAG_ROUND_STATE_WAITING_FOR_BETS;
+			}
 
+		default:
+			break;
+		}
+	}
+	
+	private void startNewRound() throws CardDeckEmptyException, IOException {
+		PokerRoundService.getCardDeckHandler().resetCardDeck();
+		
+		if(PlayerHandler.getPlayers() != null && !PlayerHandler.getPlayers().isEmpty()) {
+
+			dealCardsToPlayers();
+			Dealer.networkService.announceNewRound(PlayerHandler.getPlayers());
+		}
+		
+		pokerRoundMsgHandler.sendEmptyMessage(FLAG_ROUND_STATE_START_NEW_ROUND);
+	}
+	
+	private void dealCardsToPlayers() throws CardDeckEmptyException {
+		for (Player player : PlayerHandler.getPlayers()) {
+			player.setCard1(PokerRoundService.cardDeckHandler.drawCardForPlayer());
+			player.setCard2(PokerRoundService.cardDeckHandler.drawCardForPlayer());
+		}
+	}
+	
+
+	
+	private void collectBets() {
+//		Dealer.networkService.askPlayerForBets(player)
+	}
 }
