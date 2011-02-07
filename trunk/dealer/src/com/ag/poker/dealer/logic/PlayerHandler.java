@@ -19,6 +19,7 @@ import java.util.HashMap;
 
 import android.util.Log;
 
+import com.ag.poker.dealer.Dealer;
 import com.ag.poker.dealer.R;
 import com.ag.poker.dealer.exceptions.UnableToAddPlayerException;
 import com.ag.poker.dealer.gameobjects.Player;
@@ -86,10 +87,12 @@ public class PlayerHandler {
 		} else if (PlayerHandler.disconnectedPlayers.containsKey(player.getId())) {
 			Player disconnectedPlayer = PlayerHandler.disconnectedPlayers.get(player.getId());
 			PlayerHandler.players.put(disconnectedPlayer.getId(), disconnectedPlayer);
+			disconnectedPlayer.setSeat(Dealer.getAvailableSeat());
 			PlayerHandler.disconnectedPlayers.remove(player.getId());
 			return true;
 		} else {
 			PlayerHandler.players.put(player.getId(), player);
+			player.setSeat(Dealer.getAvailableSeat());
 			Log.i(Constants.TAG, "Player added: " + player.getId());
 			return true;
 		}
@@ -108,6 +111,9 @@ public class PlayerHandler {
 		if (player != null) {
 			PlayerHandler.disconnectedPlayers.put(player.getId(), player);
 			PlayerHandler.players.remove(playerId);
+			if(player.getSeat() > 0) {
+				Dealer.addAvailableSeat(player.getSeat());
+			}
 		}
 	}
 
