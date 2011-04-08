@@ -13,11 +13,13 @@
    limitations under the License.
 */
 
-package com.ag.poker.dealer.gameobjects;
+package com.ag.poker.dealer.gameobjects.player;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
+import java.util.ArrayList;
+
+import com.ag.poker.dealer.gameobjects.card.Card;
 
 /**
  * @author Arild
@@ -54,14 +56,8 @@ public class Player {
 		this.id = pDataInputStream.readUTF();
 		this.name = pDataInputStream.readUTF();
 		this.chipCount = pDataInputStream.readDouble();
-		
-		try {
-			this.card1 = Card.values()[pDataInputStream.readInt()];
-			this.card2 = Card.values()[pDataInputStream.readInt()];
-		} catch (EOFException e) {
-			//The cards isn't on the stream, just ignore
-		}
-		
+		this.card1 = Card.values()[pDataInputStream.readInt()];
+		this.card2 = Card.values()[pDataInputStream.readInt()];
 	}
 
 	/**
@@ -129,6 +125,14 @@ public class Player {
 	public Card getCard2() {
 		return card2;
 	}
+	
+	public ArrayList<Card> getCards() {
+		ArrayList<Card> cards = new ArrayList<Card>(2);
+		cards.add(card1);
+		cards.add(card2);
+		
+		return cards;
+	}
 
 	/**
 	 * @param card2 the card2 to set
@@ -143,9 +147,13 @@ public class Player {
 		dataOutputStream.writeDouble(this.chipCount);
 		if(this.card1 != null) {
 			dataOutputStream.writeInt(this.card1.ordinal());
+		} else {
+			dataOutputStream.writeInt(-1);
 		}
 		if(this.card2 != null) {
 			dataOutputStream.writeInt(this.card2.ordinal());
+		} else {
+			dataOutputStream.writeInt(-1);
 		}
 		
 		dataOutputStream.flush();

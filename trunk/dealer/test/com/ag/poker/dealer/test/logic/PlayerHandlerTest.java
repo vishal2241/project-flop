@@ -3,7 +3,7 @@ package com.ag.poker.dealer.test.logic;
 import android.test.AndroidTestCase;
 
 import com.ag.poker.dealer.exceptions.UnableToAddPlayerException;
-import com.ag.poker.dealer.gameobjects.Player;
+import com.ag.poker.dealer.gameobjects.player.Player;
 import com.ag.poker.dealer.logic.PlayerHandler;
 
 public class PlayerHandlerTest extends AndroidTestCase {

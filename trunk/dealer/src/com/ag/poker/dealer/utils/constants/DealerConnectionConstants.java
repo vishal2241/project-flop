@@ -13,6 +13,10 @@ public interface DealerConnectionConstants {
 	public static final int PLAYER_DATA_CLIENT_MESSAGE = 8;
 	
 	
+	public static final short FLAG_BET_FOLD = 0;
+	public static final short FLAG_BET_CALL = 1;
+	public static final short FLAG_BET_RAISE = 2;
+	
 	
 	public static final short FLAG_MESSAGE_SERVER_UPDATE_PLAYER_DATA = 1;
 	public static final short FLAG_MESSAGE_CLIENT_REGISTERING = 2;

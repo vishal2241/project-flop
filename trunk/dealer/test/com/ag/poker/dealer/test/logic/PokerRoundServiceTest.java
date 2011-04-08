@@ -7,18 +7,25 @@ import android.test.AndroidTestCase;
 
 import com.ag.poker.dealer.Dealer;
 import com.ag.poker.dealer.exceptions.InitServerException;
-import com.ag.poker.dealer.gameobjects.Player;
-import com.ag.poker.dealer.gameobjects.PlayerList;
+import com.ag.poker.dealer.gameobjects.player.Player;
+import com.ag.poker.dealer.gameobjects.player.PlayerList;
 import com.ag.poker.dealer.logic.PokerRoundService;
 import com.ag.poker.dealer.network.NetworkService;
 import com.ag.poker.dealer.utils.constants.PokerRoundConstants;
 
 public class PokerRoundServiceTest extends AndroidTestCase implements PokerRoundConstants {
 	
-	private PokerRoundService pokerRoundHandler;
+	private PokerRoundService pokerRoundService;
 	private Handler pokerRoundMsgHandler;
 	
+	private boolean hasCalledStartServer = false;
+	private boolean hasCalledStopServer = false;
+	private boolean hasCalledSendPlayerData = false;
 	private boolean hasAnnouncedNewRound = false;
+	private boolean hasAskedPlayerForBet = false;
+	private boolean hasAnnouncedRoundFinished = false;
+	
+	private Player lastPlayerMessaged;
 
 	/* (non-Javadoc)
 	 * @see junit.framework.TestCase#setUp()
@@ -27,12 +34,21 @@ public class PokerRoundServiceTest extends AndroidTestCase implements PokerRound
 	protected void setUp() throws Exception {
 		super.setUp();
 		
+		hasCalledStartServer = false;
+		hasCalledStopServer = false;
+		hasCalledSendPlayerData = false;
+		hasAnnouncedNewRound = false;
+		hasAskedPlayerForBet = false;
+		hasAnnouncedRoundFinished = false;
+		
+		lastPlayerMessaged = null;
+		
 		this.pokerRoundMsgHandler = new Handler();
 		
 		new Dealer();
 		Dealer.networkService = new MockNetworkService();
 		
-		this.pokerRoundHandler = new PokerRoundService(this.pokerRoundMsgHandler);
+		this.pokerRoundService = new PokerRoundService(this.pokerRoundMsgHandler);
 	}
 
 	/* (non-Javadoc)
@@ -40,17 +56,45 @@ public class PokerRoundServiceTest extends AndroidTestCase implements PokerRound
 	 */
 	@Override
 	protected void tearDown() throws Exception {
-		// TODO Auto-generated method stub
 		super.tearDown();
 	}
 	
 	public void testClassInitialization() {
-		assertNotNull(pokerRoundHandler);
+		assertNotNull(pokerRoundService);
 		assertNotNull(PokerRoundService.getCardDeckHandler());
 		assertNotNull(PokerRoundService.getPlayerHandler());
-		assertSame(this.pokerRoundMsgHandler, pokerRoundHandler.getPokerRoundMsgHandler());
-		assertEquals(PokerRoundConstants.FLAG_ROUND_STATE_START_NEW_ROUND, pokerRoundHandler.getRound_state());
+		assertSame(this.pokerRoundMsgHandler, pokerRoundService.getPokerRoundMsgHandler());
+		assertEquals(PokerRoundConstants.FLAG_ROUND_STATE_START_NEW_ROUND, pokerRoundService.getRound_state());
 	}
+	
+//	public void testCompleteRoundStageLogic() throws CardDeckEmptyException, IOException {
+//		PlayerList players = TestToolUtil.createTestPlayers(5);
+//		PlayerHandler.setPlayers(players);
+//		
+//		assertEquals(FLAG_ROUND_STATE_START_NEW_ROUND, pokerRoundService.getRound_state());
+//		
+//		//starting new round
+//		pokerRoundService.nextStage();
+//		assertTrue(hasAnnouncedNewRound);
+//		
+//		//collect bets from player 1
+//		assertEquals(FLAG_ROUND_STATE_COLLECT_BETS, pokerRoundService.getRound_state());
+//		pokerRoundService.nextStage();
+//		assertTrue(hasAskedPlayerForBet);
+//		assertTrue(players.get(3).getId().equals(lastPlayerMessaged.getId()));
+//		
+//		//waiting bets from player 1
+//		assertEquals(FLAG_ROUND_STATE_WAITING_FOR_BETS, pokerRoundService.getRound_state());
+//		
+//		
+//		lastPlayerMessaged = null;
+//		hasAskedPlayerForBet = false;
+//		
+//		pokerRoundService.nextStage();
+//		assertEquals(FLAG_ROUND_STATE_WAITING_FOR_BETS, pokerRoundService.getRound_state());
+//		assertFalse(hasAskedPlayerForBet);
+//		assertEquals(null, lastPlayerMessaged);
+//	}
 	
 //	public void testDrawingCardsForTableWholeRound() throws CardDeckEmptyException, IOException {
 //		assertEquals(52, PokerRoundService.getCardDeckHandler().getCardDeck().size());
@@ -140,7 +184,7 @@ public class PokerRoundServiceTest extends AndroidTestCase implements PokerRound
 	 */
 	@Override
 	public void startServer() throws InitServerException {
-		// TODO Auto-generated method stub
+		hasCalledStartServer = true;
 		
 	}
 
@@ -149,7 +193,7 @@ public class PokerRoundServiceTest extends AndroidTestCase implements PokerRound
 	 */
 	@Override
 	public void stopServer() {
-		// TODO Auto-generated method stub
+		hasCalledStopServer = true;
 		
 	}
 
@@ -158,7 +202,8 @@ public class PokerRoundServiceTest extends AndroidTestCase implements PokerRound
 	 */
 	@Override
 	public void sendPlayerData(Player player) throws IOException {
-		// TODO Auto-generated method stub
+		hasCalledSendPlayerData = true;
+		lastPlayerMessaged = player;
 		
 	}
 
@@ -185,7 +230,8 @@ public class PokerRoundServiceTest extends AndroidTestCase implements PokerRound
 	 */
 	@Override
 	public void askPlayerForBets(Player player) throws IOException {
-		// TODO Auto-generated method stub
+		hasAskedPlayerForBet = true;
+		lastPlayerMessaged = player;
 		
 	}
 
@@ -194,7 +240,7 @@ public class PokerRoundServiceTest extends AndroidTestCase implements PokerRound
 	 */
 	@Override
 	public void announceFinishedRound(PlayerList winners) throws IOException {
-		// TODO Auto-generated method stub
+		hasAnnouncedRoundFinished = true;
 		
 	}
 

@@ -21,7 +21,7 @@ import java.io.IOException;
 
 import org.anddev.andengine.extension.multiplayer.protocol.adt.message.client.BaseClientMessage;
 
-import com.ag.poker.dealer.gameobjects.Player;
+import com.ag.poker.dealer.gameobjects.player.Player;
 import com.ag.poker.dealer.utils.constants.DealerConnectionConstants;
 
 /**

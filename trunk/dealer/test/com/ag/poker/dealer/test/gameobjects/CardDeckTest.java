@@ -3,8 +3,8 @@ package com.ag.poker.dealer.test.gameobjects;
 import android.test.AndroidTestCase;
 
 import com.ag.poker.dealer.exceptions.CardDeckEmptyException;
-import com.ag.poker.dealer.gameobjects.Card;
-import com.ag.poker.dealer.gameobjects.CardDeck;
+import com.ag.poker.dealer.gameobjects.card.Card;
+import com.ag.poker.dealer.gameobjects.card.CardDeck;
 
 public class CardDeckTest extends AndroidTestCase {
 	

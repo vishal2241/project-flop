@@ -13,7 +13,7 @@
    limitations under the License.
 */
 
-package com.ag.poker.dealer.gameobjects;
+package com.ag.poker.dealer.gameobjects.card;
 
 import java.util.Vector;
 

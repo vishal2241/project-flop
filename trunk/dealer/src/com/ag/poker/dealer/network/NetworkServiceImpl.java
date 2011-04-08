@@ -20,8 +20,8 @@ import java.io.IOException;
 import android.os.Handler;
 
 import com.ag.poker.dealer.exceptions.InitServerException;
-import com.ag.poker.dealer.gameobjects.Player;
-import com.ag.poker.dealer.gameobjects.PlayerList;
+import com.ag.poker.dealer.gameobjects.player.Player;
+import com.ag.poker.dealer.gameobjects.player.PlayerList;
 import com.ag.poker.dealer.network.msg.PlayerDataServerMessage;
 import com.ag.poker.dealer.utils.constants.DealerConnectionConstants;
 

@@ -18,8 +18,8 @@ package com.ag.poker.dealer.logic;
 import java.util.ArrayList;
 
 import com.ag.poker.dealer.exceptions.CardDeckEmptyException;
-import com.ag.poker.dealer.gameobjects.Card;
-import com.ag.poker.dealer.gameobjects.CardDeck;
+import com.ag.poker.dealer.gameobjects.card.Card;
+import com.ag.poker.dealer.gameobjects.card.CardDeck;
 
 /**
  * @author Arild
@@ -55,15 +55,13 @@ public class CardDeckHandler {
 		return this.cardDeck.drawCard();
 	}
 	
-	public Card drawCardForTable(boolean burnCard) throws CardDeckEmptyException {
-		if(burnCard) {
-			this.cardDeck.drawCard();
+	public void drawCardForTable(int numberOfCards) throws CardDeckEmptyException {
+		//Burn card
+		this.cardDeck.drawCard();
+		
+		for(int i = 0; i < numberOfCards; i++) {
+			cardsOnTable.add(this.cardDeck.drawCard());
 		}
-		
-		Card card = this.cardDeck.drawCard();
-		this.cardsOnTable.add(card);
-		
-		return card;
 	}
 	
 	public void resetCardDeck() {

@@ -18,8 +18,8 @@ package com.ag.poker.dealer.network;
 import java.io.IOException;
 
 import com.ag.poker.dealer.exceptions.InitServerException;
-import com.ag.poker.dealer.gameobjects.Player;
-import com.ag.poker.dealer.gameobjects.PlayerList;
+import com.ag.poker.dealer.gameobjects.player.Player;
+import com.ag.poker.dealer.gameobjects.player.PlayerList;
 
 /**
  * @author Arild
