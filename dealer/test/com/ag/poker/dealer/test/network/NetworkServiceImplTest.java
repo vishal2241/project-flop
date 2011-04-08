@@ -19,7 +19,7 @@ import android.os.Handler;
 import android.test.AndroidTestCase;
 
 import com.ag.poker.dealer.exceptions.InitServerException;
-import com.ag.poker.dealer.gameobjects.Player;
+import com.ag.poker.dealer.gameobjects.player.Player;
 import com.ag.poker.dealer.network.NetworkServiceImpl;
 import com.ag.poker.dealer.utils.constants.DealerConnectionConstants;
 

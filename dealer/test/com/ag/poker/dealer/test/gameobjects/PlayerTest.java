@@ -24,8 +24,8 @@ import java.io.IOException;
 
 import junit.framework.TestCase;
 
-import com.ag.poker.dealer.gameobjects.Card;
-import com.ag.poker.dealer.gameobjects.Player;
+import com.ag.poker.dealer.gameobjects.card.Card;
+import com.ag.poker.dealer.gameobjects.player.Player;
 
 /**
  * @author Arild
@@ -84,6 +84,8 @@ public class PlayerTest extends TestCase {
 		dataOutputStream.writeUTF(player.getId());
 		dataOutputStream.writeUTF(player.getName());
 		dataOutputStream.writeDouble(player.getChipCount());
+		dataOutputStream.writeInt(-1);
+		dataOutputStream.writeInt(-1);
 		dataOutputStream.flush();
 		
 		ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());

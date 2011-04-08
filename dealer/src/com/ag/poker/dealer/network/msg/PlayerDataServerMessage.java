@@ -6,7 +6,7 @@ import java.io.IOException;
 
 import org.anddev.andengine.extension.multiplayer.protocol.adt.message.server.BaseServerMessage;
 
-import com.ag.poker.dealer.gameobjects.Player;
+import com.ag.poker.dealer.gameobjects.player.Player;
 
 public class PlayerDataServerMessage extends BaseServerMessage {
 

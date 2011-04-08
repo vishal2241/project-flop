@@ -3,7 +3,7 @@ package com.ag.poker.dealer.test.logic;
 import android.test.AndroidTestCase;
 
 import com.ag.poker.dealer.exceptions.CardDeckEmptyException;
-import com.ag.poker.dealer.gameobjects.Card;
+import com.ag.poker.dealer.gameobjects.card.Card;
 import com.ag.poker.dealer.logic.CardDeckHandler;
 
 public class CardDeckHandlerTest extends AndroidTestCase {
@@ -44,24 +44,14 @@ public class CardDeckHandlerTest extends AndroidTestCase {
 	}
 	
 	public void testDrawACardForTableWithBurningCard() throws CardDeckEmptyException {
-		Card card = this.cardDeckHandler.drawCardForTable(true);
+		this.cardDeckHandler.drawCardForTable(3);
 		
-		assertNotNull(card);
-		assertEquals(50, this.cardDeckHandler.getCardDeck().size());
-		assertFalse(this.cardDeckHandler.getCardDeck().contains(card));
-		assertEquals(1, this.cardDeckHandler.getCardsOnTable().size());
-		assertTrue(this.cardDeckHandler.getCardsOnTable().contains(card));
+		assertFalse(this.cardDeckHandler.getCardsOnTable().isEmpty());
+		assertEquals(48, this.cardDeckHandler.getCardDeck().size());
+		assertFalse(this.cardDeckHandler.getCardDeck().contains(this.cardDeckHandler.getCardsOnTable()));
+		assertEquals(3, this.cardDeckHandler.getCardsOnTable().size());
 	}
 	
-	public void testDrawACardForTableWithoutBurningCard() throws CardDeckEmptyException {
-		Card card = this.cardDeckHandler.drawCardForTable(false);
-		
-		assertNotNull(card);
-		assertEquals(51, this.cardDeckHandler.getCardDeck().size());
-		assertFalse(this.cardDeckHandler.getCardDeck().contains(card));
-		assertEquals(1, this.cardDeckHandler.getCardsOnTable().size());
-		assertTrue(this.cardDeckHandler.getCardsOnTable().contains(card));
-	}
 	
 	public void testResetCardDeck() {
 		this.cardDeckHandler.getCardDeck().remove(0);
@@ -95,7 +85,7 @@ public class CardDeckHandlerTest extends AndroidTestCase {
 		this.cardDeckHandler.getCardDeck().removeAllElements();
 		
 		try {
-			this.cardDeckHandler.drawCardForTable(true);
+			this.cardDeckHandler.drawCardForTable(1);
 			fail("Should get a CardDeckEmptyException when trying to draw from an empty deck");
 		} catch (CardDeckEmptyException e) {
 			// TODO: handle exception

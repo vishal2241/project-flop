@@ -6,8 +6,8 @@ import android.os.Message;
 import android.test.ActivityInstrumentationTestCase2;
 
 import com.ag.poker.dealer.Dealer;
-import com.ag.poker.dealer.gameobjects.Player;
-import com.ag.poker.dealer.gameobjects.PlayerList;
+import com.ag.poker.dealer.gameobjects.player.Player;
+import com.ag.poker.dealer.gameobjects.player.PlayerList;
 import com.ag.poker.dealer.logic.PlayerHandler;
 import com.ag.poker.dealer.test.utils.TestToolUtil;
 import com.ag.poker.dealer.utils.constants.DealerConnectionConstants;
@@ -34,7 +34,7 @@ public class DealerTest extends ActivityInstrumentationTestCase2<Dealer> {
 		super.tearDown();
 	}
 	
-	public void testClassSetup() {
+	public void testPreconditions() {
 		assertNotNull(Dealer.getPokerRoundService());
 		assertNotNull(Dealer.networkService);
 		

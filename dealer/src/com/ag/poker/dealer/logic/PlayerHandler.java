@@ -21,8 +21,8 @@ import android.util.Log;
 
 import com.ag.poker.dealer.R;
 import com.ag.poker.dealer.exceptions.UnableToAddPlayerException;
-import com.ag.poker.dealer.gameobjects.Player;
-import com.ag.poker.dealer.gameobjects.PlayerList;
+import com.ag.poker.dealer.gameobjects.player.Player;
+import com.ag.poker.dealer.gameobjects.player.PlayerList;
 import com.ag.poker.dealer.utils.Constants;
 
 /**

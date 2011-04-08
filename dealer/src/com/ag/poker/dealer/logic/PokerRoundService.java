@@ -16,16 +16,12 @@
 package com.ag.poker.dealer.logic;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 import android.os.Handler;
-import android.util.Log;
 
 import com.ag.poker.dealer.Dealer;
 import com.ag.poker.dealer.exceptions.CardDeckEmptyException;
-import com.ag.poker.dealer.gameobjects.Card;
-import com.ag.poker.dealer.gameobjects.Player;
-import com.ag.poker.dealer.utils.Constants;
+import com.ag.poker.dealer.gameobjects.player.Player;
 import com.ag.poker.dealer.utils.constants.PokerRoundConstants;
 
 /**
@@ -35,19 +31,17 @@ import com.ag.poker.dealer.utils.constants.PokerRoundConstants;
 public class PokerRoundService implements PokerRoundConstants {
 	
 	private int round_state;
+	private int draw_state;
 	private Handler pokerRoundMsgHandler;
 	private static CardDeckHandler cardDeckHandler;
 	private static PlayerHandler playerHandler;
-	
-	private int dealer = -1;
-	private int smallBlind;
-	private int bigBlind;
 	
 	private static boolean bigBlindPaid = false;
 	private static boolean smallBlindPaid = false;
 	
 	public PokerRoundService(Handler pokerRoundMsgHandler) {
 		round_state = FLAG_ROUND_STATE_START_NEW_ROUND;
+		draw_state = FLAG_ROUND_STATE_FLOP;
 		this.pokerRoundMsgHandler = pokerRoundMsgHandler;
 		
 		PokerRoundService.cardDeckHandler = new CardDeckHandler();
@@ -68,6 +62,21 @@ public class PokerRoundService implements PokerRoundConstants {
 		this.round_state = round_state;
 	}
 	
+	
+	/**
+	 * @return the draw_state
+	 */
+	public int getDraw_state() {
+		return draw_state;
+	}
+
+	/**
+	 * @param draw_state the draw_state to set
+	 */
+	public void setDraw_state(int draw_state) {
+		this.draw_state = draw_state;
+	}
+
 	/**
 	 * @return the pokerRoundMsgHandler
 	 */
@@ -89,49 +98,62 @@ public class PokerRoundService implements PokerRoundConstants {
 		return playerHandler;
 	}
 
-	private ArrayList<Card> drawCardsForTable() throws CardDeckEmptyException, IOException {
-		ArrayList<Card> drawnCards = new ArrayList<Card>();
-		
-		switch (round_state) {
-		case FLAG_ROUND_STATE_START_NEW_ROUND:
-			drawnCards.add(PokerRoundService.getCardDeckHandler().drawCardForTable(true));
-			drawnCards.add(PokerRoundService.getCardDeckHandler().drawCardForTable(false));
-			drawnCards.add(PokerRoundService.getCardDeckHandler().drawCardForTable(false));
-			round_state = FLAG_ROUND_STATE_FLOP;
-			break;
-		case FLAG_ROUND_STATE_FLOP:
-			drawnCards.add(PokerRoundService.getCardDeckHandler().drawCardForTable(true));
-			round_state = FLAG_ROUND_STATE_TURN;
-			break;
-		case FLAG_ROUND_STATE_TURN:
-			drawnCards.add(PokerRoundService.getCardDeckHandler().drawCardForTable(true));
-			round_state = FLAG_ROUND_STATE_FINISH_ROUND;
-			break;
-		case FLAG_ROUND_STATE_RIVER:
-			round_state = FLAG_ROUND_STATE_FINISH_ROUND;
-			break;
-		case FLAG_ROUND_STATE_FINISH_ROUND:
-			startNewRound();
-			break;
-		default:
-			Log.e(Constants.TAG, "Illegal state: " + round_state);
-			break;
-		}
-		
-		return drawnCards;
-	}
+//	private ArrayList<Card> drawCardsForTable() throws CardDeckEmptyException, IOException {
+//		ArrayList<Card> drawnCards = new ArrayList<Card>();
+//		
+//		switch (round_state) {
+//		case FLAG_ROUND_STATE_START_NEW_ROUND:
+//			drawnCards.add(PokerRoundService.getCardDeckHandler().drawCardForTable(true));
+//			drawnCards.add(PokerRoundService.getCardDeckHandler().drawCardForTable(false));
+//			drawnCards.add(PokerRoundService.getCardDeckHandler().drawCardForTable(false));
+//			round_state = FLAG_ROUND_STATE_FLOP;
+//			break;
+//		case FLAG_ROUND_STATE_FLOP:
+//			drawnCards.add(PokerRoundService.getCardDeckHandler().drawCardForTable(true));
+//			round_state = FLAG_ROUND_STATE_TURN;
+//			break;
+//		case FLAG_ROUND_STATE_TURN:
+//			drawnCards.add(PokerRoundService.getCardDeckHandler().drawCardForTable(true));
+//			round_state = FLAG_ROUND_STATE_FINISH_ROUND;
+//			break;
+//		case FLAG_ROUND_STATE_RIVER:
+//			round_state = FLAG_ROUND_STATE_FINISH_ROUND;
+//			break;
+//		case FLAG_ROUND_STATE_FINISH_ROUND:
+//			startNewRound();
+//			break;
+//		default:
+//			Log.e(Constants.TAG, "Illegal state: " + round_state);
+//			break;
+//		}
+//		
+//		return drawnCards;
+//	}
 	
 	public void nextStage() throws CardDeckEmptyException, IOException {
 		switch (round_state) {
 		case FLAG_ROUND_STATE_START_NEW_ROUND:
 			startNewRound();
-			round_state = FLAG_ROUND_STATE_WAITING_FOR_BLINDS;
+			round_state = FLAG_ROUND_STATE_COLLECT_BETS;
 			break;
 		case FLAG_ROUND_STATE_WAITING_FOR_BLINDS:
 			if(smallBlindPaid && bigBlindPaid) {
+				Dealer.networkService.askPlayerForBets(PlayerHandler.getPlayers().getBetter());
 				round_state = FLAG_ROUND_STATE_WAITING_FOR_BETS;
 			}
-
+			break;
+		case FLAG_ROUND_STATE_COLLECT_BETS:
+			Player nextBettingPlayer = PlayerHandler.getPlayers().getNextBettingPlayer();
+			if(nextBettingPlayer != null) {
+				Dealer.networkService.askPlayerForBets(PlayerHandler.getPlayers().getNextBettingPlayer());
+				round_state = FLAG_ROUND_STATE_WAITING_FOR_BETS;
+			} else {
+				dealCardsToTable();
+			}
+		case FLAG_ROUND_STATE_WAITING_FOR_BETS:
+			if(PlayerHandler.getPlayers().isDealerBetter()) {
+			}
+			break;
 		default:
 			break;
 		}
@@ -139,6 +161,8 @@ public class PokerRoundService implements PokerRoundConstants {
 	
 	private void startNewRound() throws CardDeckEmptyException, IOException {
 		PokerRoundService.getCardDeckHandler().resetCardDeck();
+		round_state = FLAG_ROUND_STATE_START_NEW_ROUND;
+		draw_state = FLAG_ROUND_STATE_FLOP;
 		
 		if(PlayerHandler.getPlayers() != null && !PlayerHandler.getPlayers().isEmpty()) {
 
@@ -146,7 +170,28 @@ public class PokerRoundService implements PokerRoundConstants {
 			Dealer.networkService.announceNewRound(PlayerHandler.getPlayers());
 		}
 		
+		
+		
 		pokerRoundMsgHandler.sendEmptyMessage(FLAG_ROUND_STATE_START_NEW_ROUND);
+	}
+	
+	private void dealCardsToTable() throws CardDeckEmptyException {
+		switch (draw_state) {
+		case FLAG_ROUND_STATE_FLOP:
+			cardDeckHandler.drawCardForTable(3);
+			draw_state = FLAG_ROUND_STATE_TURN;
+			break;
+		case FLAG_ROUND_STATE_TURN:
+			cardDeckHandler.drawCardForTable(1);
+			draw_state = FLAG_ROUND_STATE_RIVER;
+			break;
+		case FLAG_ROUND_STATE_RIVER:
+			cardDeckHandler.drawCardForTable(1);
+			draw_state = FLAG_ROUND_STATE_FLOP;
+			break;
+		default:
+			break;
+		}
 	}
 	
 	private void dealCardsToPlayers() throws CardDeckEmptyException {
@@ -154,11 +199,5 @@ public class PokerRoundService implements PokerRoundConstants {
 			player.setCard1(PokerRoundService.cardDeckHandler.drawCardForPlayer());
 			player.setCard2(PokerRoundService.cardDeckHandler.drawCardForPlayer());
 		}
-	}
-	
-
-	
-	private void collectBets() {
-//		Dealer.networkService.askPlayerForBets(player)
 	}
 }

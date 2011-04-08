@@ -35,8 +35,8 @@ import android.widget.Toast;
 
 import com.ag.poker.dealer.exceptions.CardDeckEmptyException;
 import com.ag.poker.dealer.exceptions.UnableToAddPlayerException;
-import com.ag.poker.dealer.gameobjects.Card;
-import com.ag.poker.dealer.gameobjects.Player;
+import com.ag.poker.dealer.gameobjects.card.Card;
+import com.ag.poker.dealer.gameobjects.player.Player;
 import com.ag.poker.dealer.logic.PlayerHandler;
 import com.ag.poker.dealer.logic.PokerRoundService;
 import com.ag.poker.dealer.network.NetworkService;
@@ -54,7 +54,7 @@ public class Dealer extends BaseGameActivity implements
 
 	private static final int SCENE_NUMBER_OF_LAYERS = 4;
 
-	private static final int SCENE_LAYER_TABLE = 0;
+//	private static final int SCENE_LAYER_TABLE = 0;
 	private static final int SCENE_LAYER_DECK = 1;
 	private static final int SCENE_LAYER_COMMUNITY_CARDS = 2;
 	private static final int SCENE_LAYER_PLAYERS = 3;

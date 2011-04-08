@@ -13,18 +13,25 @@
    limitations under the License.
 */
 
-package com.ag.poker.dealer.gameobjects;
+package com.ag.poker.dealer.gameobjects.card;
 
 /**
  * @author Arild
  *
  */
-public enum CardColor {
+public enum CardValue {
 	
-	CLUB,
-	SPADE,
-	DIAMOND,
-	HEART,
-	BACK
-
+	TWO,
+	THREE,
+	FOUR,
+	FIVE,
+	SIX,
+	SEVEN,
+	EIGHT,
+	NINE,
+	TEN,
+	JACK,
+	QUEEN,
+	KING,
+	ACE
 }
